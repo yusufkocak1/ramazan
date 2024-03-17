@@ -1,0 +1,61 @@
+<script>
+ var data = null;
+
+var xhr = new XMLHttpRequest();
+xhr.withCredentials = true;
+
+xhr.addEventListener("readystatechange", function () {
+  if (this.readyState === this.DONE) {
+ 
+	
+	// API'den gelen veriler
+var data = this.responseText;
+
+// Şimdiki saat
+var now = new Date();
+var currentHour = now.getHours();
+var currentMinute = now.getMinutes();
+
+// İmsak ve akşam saatleri
+var imsak = data.result.find(x => x.vakit === "İmsak").saat.split(':');
+var aksam = data.result.find(x => x.vakit === "Akşam").saat.split(':');
+
+// İmsak ve akşam saatlerini dakika cinsinden hesaplama
+var imsakInMinutes = parseInt(imsak[0]) * 60 + parseInt(imsak[1]);
+var aksamInMinutes = parseInt(aksam[0]) * 60 + parseInt(aksam[1]);
+var nowInMinutes = currentHour * 60 + currentMinute;
+
+var remainingTime;
+
+// Şimdiki saat imsak ile akşam arasında ise
+if (nowInMinutes > imsakInMinutes && nowInMinutes < aksamInMinutes) {
+  remainingTime = aksamInMinutes - nowInMinutes;
+ document.body.innerHTML = "İftara " + Math.floor(remainingTime / 60) + " saat " + (remainingTime % 60) + " dakika kaldı.";
+} 
+// Şimdiki saat akşam ile imsak arasında ise
+else {
+  if (nowInMinutes < imsakInMinutes) {
+    remainingTime = imsakInMinutes - nowInMinutes;
+  } else { // nowInMinutes > aksamInMinutes
+    remainingTime = (24 * 60 - nowInMinutes) + imsakInMinutes;
+  }
+ document.body.innerHTML = "İmsak'a " + Math.floor(remainingTime / 60) + " saat " + (remainingTime % 60) + " dakika kaldı.";
+}
+
+	
+	
+  }
+});
+
+
+// URL'den parametreleri al
+var urlParams = new URLSearchParams(window.location.search);
+var city = urlParams.get('city'); // 'city' parametresini al
+var apikey = urlParams.get('apikey'); // 'apikey' parametresini al
+
+xhr.open("GET", "https://api.collectapi.com/pray/all?data.city=" + city);
+xhr.setRequestHeader("content-type", "application/json");
+xhr.setRequestHeader("authorization", apikey);
+
+xhr.send(data);
+</script>
